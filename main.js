@@ -10,7 +10,7 @@ let students = {
   46: "Rilwan", 47: "Rinsha", 48: "Risham", 49: "Shifana", 50: "Shimna", 51: "Sudeep", 52: "Suhair",
   53: "Thazmeen", 54: "Vishnu", 55: "Vivek", 56: "Jumana Janiya", 57: "Anfas Roshan", 58: "Prarthana",
   59: "Deva Manas", 60: "Fidha C", 64: "Amna Rasvin", 65: "Hisham M", 66: "Fathima Majidha",
-  67: "Hashir Mohammed",68: "Sakeeb Arsalan", 72: "Hamad", 73: "Advaith", 75: "Sarang"
+  67: "Hashir Mohammed", 72: "Hamad", 73: "Advaith", 75: "Sarang", 76: "Jasif", 77: "Shahina", 78: "Afthab"
 };
 
 document.getElementById("dict-select").addEventListener("change", function () {
