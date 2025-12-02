@@ -2,13 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="https://ssmpoly.ac.in/resources/images/image-og.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Attendance Tracker</title>
     <link rel="stylesheet" href="style.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
+    <button id="admin-login-btn" class="btn btn-primary" style="margin: 20px;">
+  Login as Admin (Google)
+</button>
+<button id="admin-logout-btn" class="btn btn-secondary" style="margin: 20px; display:none;">
+  Logout
+</button>
+
     <div id="app">
       <nav class="nav">
         <div class="nav-container">
@@ -18,7 +25,7 @@
               <circle cx="9" cy="7" r="4"/>
               <path d="m22 21-3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78Z"/>
             </svg>
-            <h1>CPS3 Attendance</h1>
+            <h1>CPS4 Attendance</h1>
           </div>
           <div class="nav-tabs">
             <button class="nav-tab active" data-tab="attendance">
@@ -56,7 +63,7 @@
                 <div class="dict-switch">
                   <label for="dict-select">Select Class List:</label>
                   <select id="dict-select" class="input">
-                    <option value="students" selected>CPS3</option>
+                    <option value="students" selected>CPS4</option>
                     <option value="cps5">CPS5</option>
                   </select>
                   <br><input type="radio" id="afternoon" name="time" value="AFTERNOON">
@@ -197,6 +204,6 @@
       </main>
     </div>
 
-    <script type="module" src="/main.js"></script>
+    <script type="module" src="/admin.js"></script>
   </body>
 </html>
