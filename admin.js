@@ -3,6 +3,7 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   setDoc,
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
@@ -25,6 +26,8 @@ logoutBtn.onclick = adminLogout;
 let students = {};
 let absentees = [];
 let selectedTime = "";
+let hourSelections = {}; 
+// Example: { "7": [1,2], "12":[4] }
 
 // ------------------------------------
 // AUTH STATE HANDLING
@@ -37,13 +40,15 @@ onAuth(user => {
 
   const allowedAdmins = [
     "fahadsheza0@gmail.com",
-    "admin2@gmail.com",
+    "rafipoly@gmail.com",
     "teacher@school.com"
   ];
 
   if (!allowedAdmins.includes(user.email)) {
     alert("You are NOT allowed to access this admin panel.");
     adminLogout();
+    // redirect to student page
+    window.location.href = "/";
     return;
   }
 
@@ -98,12 +103,25 @@ window.removeStudent = async function (roll) {
   await loadStudents();
 };
 
-// ------------------------------------
-// ADD / MARK ABSENT (centralized)
-// ------------------------------------
+
+// --- ENABLE ADD BUTTON & ENTER KEY ---
+addBtnEl.addEventListener("click", (e) => {
+  e.preventDefault();
+  addRoll();
+});
+
+rollInputEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    addRoll();
+  }
+});
+
+
+// --- FUNCTION TO ADD ROLL ---
 function addRoll() {
   const raw = rollInputEl.value;
-  // support empty or whitespace
+
   if (!raw && raw !== 0) {
     alert("Please enter a roll number");
     rollInputEl.focus();
@@ -119,7 +137,6 @@ function addRoll() {
     return;
   }
 
-  // check existence
   if (!students[String(val)]) {
     alert("Roll not found");
     rollInputEl.value = "";
@@ -127,83 +144,178 @@ function addRoll() {
     return;
   }
 
+  // Add if new
   if (!absentees.includes(val)) {
     absentees.push(val);
-    renderAbsentees();
-    // optional: feedback
-    // you can replace alert with your notification UI
-    alert(`${students[String(val)]} marked as absent`);
-  } else {
-    // already marked
-    alert("Student already marked as absent");
   }
 
-  // Clear and focus for next entry
+  // Auto-select hours ONLY when FN/AN already chosen
+  if (selectedTime) {
+    hourSelections[val] =
+      selectedTime === "FORENOON" ? [1, 2, 3] : [4, 5, 6];
+  }
+
+  renderAbsentees();
+  alert(`${students[String(val)]} marked as absent`);
+
   rollInputEl.value = "";
   rollInputEl.focus();
 }
 
-// wire the button to addRoll
-addBtnEl.onclick = addRoll;
 
-// wire Enter key to addRoll and clear input
-rollInputEl.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
-    // prevent form submits or default behaviour
-    e.preventDefault();
-    addRoll();
-  }
-});
 
 // ------------------------------------
 // REMOVE ABSENTEE
 // ------------------------------------
 window.removeAbsentee = function (roll) {
   absentees = absentees.filter(x => x !== roll);
+  delete hourSelections[roll];
   renderAbsentees();
 };
 
 // ------------------------------------
 // SELECT TIME
 // ------------------------------------
-document.getElementById("afternoon").onchange = (e) => selectedTime = "AFTERNOON";
-document.getElementById("forenoon").onchange = (e) => selectedTime = "FORENOON";
+document.getElementById("afternoon").onchange = () => {
+  selectedTime = "AFTERNOON";
+  renderAbsentees();
+};
+document.getElementById("forenoon").onchange = () => {
+  selectedTime = "FORENOON";
+  renderAbsentees();
+};
+
 
 // ------------------------------------
-// SAVE ATTENDANCE TO FIRESTORE
+// HOUR BUTTON CLICK HANDLER
 // ------------------------------------
-async function saveAttendance() {
+function enableHourSelectors() {
+  document.querySelectorAll(".hour-btn").forEach(btn => {
+    btn.onclick = () => {
+      const roll = btn.dataset.roll;
+      const hour = parseInt(btn.dataset.hour);
+
+      if (!hourSelections[roll]) hourSelections[roll] = [];
+
+      if (hourSelections[roll].includes(hour)) {
+        hourSelections[roll] = hourSelections[roll].filter(h => h !== hour);
+        btn.classList.remove("active");
+      } else {
+        hourSelections[roll].push(hour);
+        btn.classList.add("active");
+      }
+    };
+  });
+}
+
+
+// ------------------------------------
+// RENDER ABSENTEES WITH HOUR BUTTONS
+// ------------------------------------
+function renderAbsentees() {
+  const container = document.getElementById("absentees-list");
+  container.innerHTML = "";
+
   if (absentees.length === 0) {
-    alert("No absentees");
+    container.innerHTML = `
+      <div class="empty-state">
+        <p>All present so far!</p>
+        <span>Add roll numbers to mark absentees</span>
+      </div>`;
     return;
   }
+
   if (!selectedTime) {
-    alert("Select Forenoon / Afternoon");
+    container.innerHTML = `
+      <div class="empty-state">
+        <p>Rolls added. Now select Forenoon or Afternoon.</p>
+      </div>`;
     return;
-  }
+}
 
-  const now = new Date();
-  const dateStr = now.toISOString().split("T")[0];
 
-  await setDoc(doc(db, "attendance", `${dateStr}_${selectedTime}`), {
-    date: dateStr,
-    time: selectedTime,
-    absentees: absentees
+  const hours = selectedTime === "FORENOON" ? [1,2,3] : [4,5,6];
+
+  absentees.sort((a, b) => a - b).forEach(roll => {
+    const div = document.createElement("div");
+    div.className = "absentee-card";
+
+    let hourButtons = hours.map(h =>
+      `<button class="hour-btn ${hourSelections[roll]?.includes(h) ? "active" : ""}" 
+               data-roll="${roll}" data-hour="${h}">
+          H${h}
+       </button>`
+    ).join("");
+
+    div.innerHTML = `
+      <div class="absentee-info">
+        <div class="roll-number">${roll}</div>
+        <div class="student-name">${students[roll]}</div>
+      </div>
+      <div class="hour-row">${hourButtons}</div>
+      <button onclick="removeAbsentee(${roll})" class="remove-btn">X</button>
+    `;
+
+    container.appendChild(div);
   });
 
-  alert("Saved to Firestore");
+  enableHourSelectors();
+  updateStats();
 }
-document.getElementById("send-btn").onclick = saveAttendance;
+
 
 // ------------------------------------
-// RENDER FUNCTIONS (same as before)
+// SAVE + SEND WHATSAPP
+// ------------------------------------
+async function saveAndSendWhatsApp() {
+  if (!selectedTime) return alert("Select FN/AN");
+  if (absentees.length === 0) return alert("No absentees");
+
+  const dateStr = new Date().toISOString().split("T")[0];
+  const dayStr = new Date().toLocaleDateString("en-GB", { weekday: "long" });
+
+  const ref = doc(db, "attendance", dateStr);
+
+  let record = {
+    hours: {1:[],2:[],3:[],4:[],5:[],6:[]}
+  };
+
+  const snap = await getDoc(ref);
+  if (snap.exists()) record = snap.data();
+
+  Object.keys(hourSelections).forEach(roll => {
+    hourSelections[roll].forEach(h => {
+      if (!record.hours[h].includes(parseInt(roll))) {
+        record.hours[h].push(parseInt(roll));
+      }
+    });
+  });
+
+  await setDoc(ref, record);
+  alert("Saved to database");
+
+  let msg = `Attendance ${dateStr} (${dayStr})\n------------------\n`;
+
+  absentees.forEach(roll => {
+    const hours = hourSelections[roll] || [];
+    msg += `${roll} - ${students[roll]} → Hours: H${hours.join(", H") || "None"}\n`;
+  });
+
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+}
+
+document.getElementById("send-btn").onclick = saveAndSendWhatsApp;
+
+
+// ------------------------------------
+// OTHER RENDER FUNCTIONS
 // ------------------------------------
 function renderStudents() {
   const container = document.getElementById("students-list");
   container.innerHTML = "";
 
   Object.entries(students)
-    .sort(([a], [b]) => a - b)
+    .sort(([a],[b]) => a - b)
     .forEach(([roll, name]) => {
       const div = document.createElement("div");
       div.className = "student-card";
@@ -221,26 +333,6 @@ function renderStudents() {
     `All Students (${Object.keys(students).length})`;
 }
 
-function renderAbsentees() {
-  const container = document.getElementById("absentees-list");
-  container.innerHTML = "";
-
-  absentees.sort((a, b) => a - b).forEach(roll => {
-    const div = document.createElement("div");
-    div.className = "absentee-card";
-    div.innerHTML = `
-      <div class="absentee-info">
-        <div class="roll-number">${roll}</div>
-        <div class="student-name">${students[roll]}</div>
-      </div>
-      <button onclick="removeAbsentee(${roll})" class="remove-btn">X</button>
-    `;
-    container.appendChild(div);
-  });
-
-  updateStats();
-}
-
 function updateStats() {
   document.getElementById("absentees-count").textContent = absentees.length;
   document.getElementById("total-students").textContent = Object.keys(students).length;
@@ -248,23 +340,19 @@ function updateStats() {
     Object.keys(students).length - absentees.length;
 }
 
+
+// ------------------------------------
 function showLogin() {
-  // hide admin UI
   loginBtn.style.display = "inline-block";
   logoutBtn.style.display = "none";
-  
   attendanceTab.style.display = "none";
   manageTab.style.display = "none";
 }
 
 function showAdminPanel() {
-  // show admin UI
   loginBtn.style.display = "none";
   logoutBtn.style.display = "inline-block";
-
   attendanceTab.style.display = "block";
   manageTab.style.display = "block";
-
-  // load data for admin
   loadStudents();
 }
