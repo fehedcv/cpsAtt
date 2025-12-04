@@ -15,6 +15,7 @@ const attendanceTab = document.getElementById("attendance-tab");
 const manageTab = document.getElementById("manage-tab");
 const rollInputEl = document.getElementById("roll-input");
 const addBtnEl = document.getElementById("add-btn");
+const dateInputEl = document.getElementById("attendance-date"); // NEW REF
 
 // Hide panel until login
 attendanceTab.style.display = "none";
@@ -28,6 +29,17 @@ let absentees = [];
 let selectedTime = "";
 let hourSelections = {}; 
 // Example: { "7": [1,2], "12":[4] }
+
+
+// ------------------------------------
+// SET DEFAULT DATE TO TODAY (NEW)
+// ------------------------------------
+const today = new Date();
+const yyyy = today.getFullYear();
+const mm = String(today.getMonth() + 1).padStart(2, '0');
+const dd = String(today.getDate()).padStart(2, '0');
+dateInputEl.value = `${yyyy}-${mm}-${dd}`; // Sets input value
+
 
 // ------------------------------------
 // AUTH STATE HANDLING
@@ -265,16 +277,26 @@ function renderAbsentees() {
 
 
 // ------------------------------------
-// SAVE + SEND WHATSAPP
+// SAVE + SEND WHATSAPP (UPDATED)
 // ------------------------------------
 async function saveAndSendWhatsApp() {
   if (!selectedTime) return alert("Select FN/AN");
   if (absentees.length === 0) return alert("No absentees");
 
-  const dateStr = new Date().toISOString().split("T")[0];
-  const dayStr = new Date().toLocaleDateString("en-GB", { weekday: "long" });
+  // Get date from input (Format is YYYY-MM-DD from the HTML input)
+  const rawDate = dateInputEl.value; 
+  if (!rawDate) return alert("Please select a date");
 
-  const ref = doc(db, "attendance", dateStr);
+  // Create formatted string for WhatsApp (DD:MM:YYYY)
+  const [year, month, day] = rawDate.split("-");
+  const formattedDate = `${day}:${month}:${year}`;
+
+  // Get Day Name (e.g., Monday)
+  const dateObj = new Date(rawDate);
+  const dayStr = dateObj.toLocaleDateString("en-GB", { weekday: "long" });
+
+  // Use rawDate (YYYY-MM-DD) for Firestore ID to keep sorting correct
+  const ref = doc(db, "attendance", rawDate);
 
   let record = {
     hours: {1:[],2:[],3:[],4:[],5:[],6:[]}
@@ -294,7 +316,8 @@ async function saveAndSendWhatsApp() {
   await setDoc(ref, record);
   alert("Saved to database");
 
-  let msg = `Attendance ${dateStr} (${dayStr})\n------------------\n`;
+  // Use formattedDate (DD:MM:YYYY) for the message
+  let msg = `Attendance ${formattedDate} (${dayStr})\n------------------\n`;
 
   absentees.forEach(roll => {
     const hours = hourSelections[roll] || [];

@@ -97,7 +97,7 @@
     border: 1px solid var(--border);
   }
 
-  /* Configuration Section */
+  /* Config Card Grid (Updated for 3 items if needed, or flex wrap) */
   .config-card {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -105,6 +105,7 @@
     align-items: end;
   }
 
+  /* Make date take full width on mobile if needed, or fit grid */
   @media (max-width: 480px) {
     .config-card {
       grid-template-columns: 1fr;
@@ -293,26 +294,28 @@
     font-weight: 600;
     cursor: pointer;
   }
-.hour-row {
-  display: flex;
-  gap: 6px;
-}
+  
+  .hour-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
 
-.hour-btn {
-  padding: 4px 8px;
-  font-size: 0.75rem;
-  border: 1px solid var(--border);
-  background: var(--background);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.15s;
-}
+  .hour-btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border: 1px solid var(--border);
+    background: var(--background);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.15s;
+  }
 
-.hour-btn.active {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary-dark);
-}
+  .hour-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary-dark);
+  }
 
   /* Absentees List */
   .list-header {
@@ -334,19 +337,36 @@
     gap: 0.75rem;
   }
 
-  /* Individual list items (Assuming JS creates div or li) */
   .absentees-list>div:not(.empty-state) {
     background: var(--surface);
     border: 1px solid var(--border);
     padding: 0.5rem 1rem;
-    border-radius: 100px;
-    /* Pill shape */
+    border-radius: 12px;
+    /* Changed from pill to rounded rect for better stacking */
     font-weight: 500;
     font-size: 0.95rem;
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    flex-direction: column; /* Stack name and hours */
+    align-items: flex-start;
+    gap: 0.25rem;
     animation: popIn 0.2s ease-out;
+  }
+
+  .absentee-info {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+  }
+  
+  .remove-btn {
+      margin-top: 8px;
+      width: 100%;
+      background: #fee2e2;
+      color: #ef4444;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
   }
 
   @keyframes popIn {
@@ -460,6 +480,11 @@
             </div>
 
             <div class="form-group">
+              <label class="label-text">Date</label>
+              <input type="date" id="attendance-date" class="input-select" style="font-family: inherit;">
+            </div>
+
+            <div class="form-group">
               <label class="label-text">Session</label>
               <div class="toggle-container">
                 <input type="radio" id="forenoon" name="time" value="FORENOON">
@@ -470,22 +495,7 @@
               </div>
             </div>
           </div>
-          <div class="hour-selection">
-            <h4>Select Hours:</h4>
-
-            <div id="fn-hours" style="display:none;">
-              <label><input type="checkbox" value="1"> FN Hour 1</label><br>
-              <label><input type="checkbox" value="2"> FN Hour 2</label><br>
-              <label><input type="checkbox" value="3"> FN Hour 3</label>
-            </div>
-
-            <div id="an-hours" style="display:none;">
-              <label><input type="checkbox" value="4"> AN Hour 4</label><br>
-              <label><input type="checkbox" value="5"> AN Hour 5</label><br>
-              <label><input type="checkbox" value="6"> AN Hour 6</label>
-            </div>
-          </div>
-
+          
           <div class="stats-grid">
             <div class="stat-card danger">
               <div class="stat-value" id="absentees-count">0</div>
