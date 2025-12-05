@@ -53,7 +53,8 @@ onAuth(user => {
   const allowedAdmins = [
     "fahadsheza0@gmail.com",
     "rafipoly@gmail.com",
-    "teacher@school.com"
+    "teacher@school.com",
+    "amna207rasvin@gmail.com",
   ];
 
   if (!allowedAdmins.includes(user.email)) {
