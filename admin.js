@@ -278,58 +278,65 @@ function renderAbsentees() {
 
 
 // ------------------------------------
-// SAVE + SEND WHATSAPP (UPDATED)
+// SAVE + SEND WHATSAPP (UPDATED FORMAT)
 // ------------------------------------
 async function saveAndSendWhatsApp() {
-  if (!selectedTime) return alert("Select FN/AN");
-  if (absentees.length === 0) return alert("No absentees");
+  // 1. Validation
+  if (!selectedTime) return alert("Select Forenoon or Afternoon first");
+  if (absentees.length === 0) return alert("No absentees to send");
 
-  // Get date from input (Format is YYYY-MM-DD from the HTML input)
+  // 2. Date Formatting
   const rawDate = dateInputEl.value; 
   if (!rawDate) return alert("Please select a date");
 
-  // Create formatted string for WhatsApp (DD:MM:YYYY)
   const [year, month, day] = rawDate.split("-");
-  const formattedDate = `${day}:${month}:${year}`;
+  const formattedDate = `${day}-${month}-${year}`; // DD-MM-YYYY
 
-  // Get Day Name (e.g., Monday)
   const dateObj = new Date(rawDate);
-  const dayStr = dateObj.toLocaleDateString("en-GB", { weekday: "long" });
+  const dayStr = dateObj.toLocaleDateString("en-GB", { weekday: "long" }); // e.g., "Monday", "Tuesday"
 
-  // Use rawDate (YYYY-MM-DD) for Firestore ID to keep sorting correct
+  // 3. Database Saving (Keeps the detailed hours logic in the background)
   const ref = doc(db, "attendance", rawDate);
+  let record = { hours: {1:[],2:[],3:[],4:[],5:[],6:[]} };
 
-  let record = {
-    hours: {1:[],2:[],3:[],4:[],5:[],6:[]}
-  };
+  try {
+    const snap = await getDoc(ref);
+    if (snap.exists()) record = snap.data();
 
-  const snap = await getDoc(ref);
-  if (snap.exists()) record = snap.data();
-
-  Object.keys(hourSelections).forEach(roll => {
-    hourSelections[roll].forEach(h => {
-      if (!record.hours[h].includes(parseInt(roll))) {
-        record.hours[h].push(parseInt(roll));
-      }
+    // Update DB record based on selections
+    Object.keys(hourSelections).forEach(roll => {
+      hourSelections[roll].forEach(h => {
+        if (!record.hours[h].includes(parseInt(roll))) {
+          record.hours[h].push(parseInt(roll));
+        }
+      });
     });
+
+    await setDoc(ref, record);
+  } catch (error) {
+    console.error("Error saving to DB:", error);
+    alert("Error saving data, but generating WhatsApp message...");
+  }
+
+  // 4. WhatsApp Message Construction (New Format)
+  // Logic: We use the existing 'selectedTime' variable (FORENOON/AFTERNOON)
+  
+  let msg = `*CPS4 Attendance*\n`;
+  msg += `${formattedDate} \n${dayStr}\n`;
+  msg += `${selectedTime}\n`; 
+  msg += `-----------------------\n`;
+
+  // Sort absentees numerically
+  absentees.sort((a, b) => a - b).forEach(roll => {
+    // Format: "12 - Name" (No hours included)
+    msg += `${roll} - ${students[roll]}\n`;
   });
 
-  await setDoc(ref, record);
-  alert("Saved to database");
-
-  // Use formattedDate (DD:MM:YYYY) for the message
-  let msg = `Attendance ${formattedDate} (${dayStr})\n------------------\n`;
-
-  absentees.forEach(roll => {
-    const hours = hourSelections[roll] || [];
-    msg += `${roll} - ${students[roll]} → Hours: H${hours.join(", H") || "None"}\n`;
-  });
-
+  // 5. Open WhatsApp
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
 document.getElementById("send-btn").onclick = saveAndSendWhatsApp;
-
 
 // ------------------------------------
 // OTHER RENDER FUNCTIONS
