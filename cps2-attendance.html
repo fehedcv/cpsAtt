@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Attendance Tracker</title>
+  <title>CPS 2 Attendance Tracker</title>
   <link rel="icon" type="image/svg+xml" href="https://ssmpoly.ac.in/resources/images/image-og.png" />
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="admin.css" />
@@ -23,7 +23,7 @@
           <path d="m22 21-3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78Z" />
         </svg>
       </div>
-      <h1>CPS Attendance</h1>
+      <h1>CPS 2 Attendance</h1>
     </div>
     <div class="auth-controls">
       <button id="admin-login-btn" class="btn btn-sm btn-outline">Admin Login</button>
@@ -37,19 +37,6 @@
         <div class="container">
 
           <div class="card config-card">
-            <div class="form-group">
-              <label class="label-text">Select Class</label>
-              <div class="select-wrapper">
-                <select id="dict-select" class="input-select">
-                  <option value="students" selected>CPS 4</option>
-                  <option value="studentscps2">CPS 2</option>
-                </select>
-                <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </div>
-            </div>
-
             <div class="form-group">
               <label class="label-text">Date</label>
               <input type="date" id="attendance-date" class="input-select" style="font-family: inherit;">
@@ -142,7 +129,7 @@
     </div>
   </div>
 
-  <script type="module" src="/admin.js"></script>
+  <script type="module" src="cps2-attendance.js"></script>
 </body>
 
 </html>
