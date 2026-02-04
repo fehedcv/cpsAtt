@@ -69,6 +69,8 @@ onAuth(user => {
     "rafipoly@gmail.com",
     "teacher@school.com",
     "amna207rasvin@gmail.com",
+    "irfanasherin2025@gmail.com",
+    "ajumusthafa1779@gmail.com",
   ];
 
   if (!allowedAdmins.includes(user.email)) {
