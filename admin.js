@@ -66,7 +66,7 @@ onAuth(user => {
 
   const allowedAdmins = [
     "fahadsheza0@gmail.com",
-    "rafipoly@gmail.com",
+    "rafi.poly@gmail.com",
     "teacher@school.com",
     "amna207rasvin@gmail.com",
     "irfanasherin2025@gmail.com",
